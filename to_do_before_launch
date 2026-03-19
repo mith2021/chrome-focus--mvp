@@ -1,0 +1,45 @@
+These are essential for usability, safety, and Web Store approval:
+
+Customizable Block List
+
+Let users add or remove sites from the blocked list.
+
+Example: popup.html could have an input + “Add Site” button.
+
+Configurable Delay Timer
+
+Instead of always instant overlay, allow users to set 1–10 second pause before they can click “Continue.”
+
+Makes it feel more like “One Sec.”
+
+Accurate Usage Tracking
+
+Track time spent per site or number of visits per day.
+
+Optionally, track weekly stats for better insights.
+
+Persistent Settings
+
+Store blocked sites, delay time, and stats in chrome.storage.sync (so they sync across devices).
+
+Clean, Intuitive UI
+
+Overlay and popup should look professional: readable fonts, proper spacing, clear buttons.
+
+Privacy Compliance
+
+No data leaves the user’s computer unless you explicitly implement cloud sync.
+
+Web Store reviewers hate extensions that track browsing without explicit consent.
+
+💡 Suggested Order of Feature Implementation Before Web Store:
+
+Custom block list + delay timer
+
+Daily stats tracking + popup UI
+
+Persistent settings via chrome.storage.sync
+
+Clean overlay & popup styling
+
+Optional gamification / motivational prompts

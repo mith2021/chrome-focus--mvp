@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2>Focus Stats</h2>
+    <div id="stats"></div>
+    
+
+    <h3>Delay Timer</h3>
+
+    <div class="slider-container">
+        <input type="range" id="delaySlider" min="1" max="10" value="3">
+        <span id="delayValue">3s</span>
+    </div>
+
+    <h2>Focus Control</h2>
+
+    <div class="input-row">
+        <input type="text" id="siteInput" placeholder="e.g. youtube.com">
+        <button id="addBtn">Add</button>
+    </div>
+
+    <ul id="siteList"></ul>
+
+<script src="popup.js"></script>
+</body>
+</html>
