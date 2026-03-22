@@ -8,16 +8,13 @@
     "tabs",
     "scripting"
   ],
-  "host_permissions": [
-    "*://*.youtube.com/*",
-    "*://*.instagram.com/*"
-  ],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*", "*://*.instagram.com/*"],
+      "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
   ],
