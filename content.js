@@ -28,7 +28,8 @@
             position: fixed;
             top:0; left:0;
             width:100%; height:100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
             color: white;
             display:flex;
             justify-content:center;
@@ -40,15 +41,33 @@
 
         overlay.innerHTML = `
             <p id="countdownText">Take a deep breath 😌</p>
+            <button id="closeTabBtn" style="margin-top:10px;">Close Tab</button>
             <button id="continueBtn" disabled style="margin-top:20px; padding:10px 20px; font-size:18px;">
                 Wait ${delay}s
             </button>
         `;
+        overlay.querySelector('#closeTabBtn').onclick = () => {
+            chrome.runtime.sendMessage({
+                action: 'closeTab',
+                timeSaved: delay
+            });
+        };
+
 
         document.body.appendChild(overlay);
 
         const button = overlay.querySelector('#continueBtn');
         const text = overlay.querySelector('#countdownText');
+        const quotes = [
+            "You’re in control.",
+            "Stay focused.",
+            "Do you really need this?",
+            "Your future self will thank you.",
+            "Pause. Breathe. Decide."
+        ];
+
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+
 
         let timeLeft = delay;
 
@@ -61,7 +80,7 @@
                 clearInterval(interval);
                 button.disabled = false;
                 button.textContent = "Continue";
-                text.textContent = "You’re in control.";
+                text.textContent = `${randomQuote}`;
             }
         }, 1000);
 

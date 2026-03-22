@@ -85,3 +85,12 @@ li:hover {
     transform: scale(1.02);
 }
 
+#siteList {
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.section {
+    margin-bottom: 15px;
+}
+

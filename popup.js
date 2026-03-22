@@ -82,12 +82,41 @@ input.addEventListener('keypress', (e) => {
 
 loadSites(); // Load sites when the popup is opened
 
+function renderStats() {
+    chrome.storage.local.get([today, 'stats', 'timeSaved'], (res) => {
+        const dailyData = res[today] || {};
+        const stats = res.stats || {};
+        const timeSaved = res.timeSaved || 0;
 
-chrome.storage.local.get([today], (result) => {
-    const data = result[today] || {};
-    let html = '';
-    for (const site in data) {
-        html += `<p>${site}: ${data[site]} visits</p>`;
-    }
-    statsDiv.innerHTML = html || '<p>No visits today!</p>';
-});
+        let html = `<p><strong>Time Saved:</strong> ${timeSaved}s</p>`;
+
+        // Daily visits
+        html += `<h4>Today's Visits:</h4>`;
+        if (Object.keys(dailyData).length > 0) {
+            for (const site in dailyData) {
+                const visits = dailyData[site].visits || dailyData[site]; // handle different formats
+                html += `<p>${site}: ${visits} visit${visits !== 1 ? 's' : ''}</p>`;
+            }
+        } else {
+            html += `<p>No visits today!</p>`;
+        }
+
+        // Total visits & times blocked
+        html += `<h4>Total Stats:</h4>`;
+        if (Object.keys(stats).length > 0) {
+            for (const site in stats) {
+                const siteStats = stats[site];
+                html += `<p>
+                    ${site}: ${siteStats.visits || 0} visit${siteStats.visits !== 1 ? 's' : ''}` +
+                    `${siteStats.timesBlockedToday ? ` | Blocked Today: ${siteStats.timesBlockedToday}` : ''}</p>`;
+            }
+        } else {
+            html += `<p>No total stats yet.</p>`;
+        }
+
+        statsDiv.innerHTML = html;
+    });
+}
+
+// Call on popup load
+document.addEventListener('DOMContentLoaded', renderStats);

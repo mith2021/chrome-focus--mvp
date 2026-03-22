@@ -1,31 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-
+    <title>Focus Extension</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h2>Focus Stats</h2>
-    <div id="stats"></div>
-    
+    <section id="statsSection">
+        <h2>Stats</h2>
+        <div id="stats">Loading stats...</div>
+    </section>
 
-    <h3>Delay Timer</h3>
+    <section id="timerSection">
+        <label for="delaySlider"><h3>Delay Timer</h3></label>
+        <div class="slider-container">
+            <input type="range" id="delaySlider" min="1" max="10" value="3">
+            <span id="delayValue">3s</span>
+        </div>
+    </section>
 
-    <div class="slider-container">
-        <input type="range" id="delaySlider" min="1" max="10" value="3">
-        <span id="delayValue">3s</span>
-    </div>
+    <section id="focusSection">
+        <h2>Focus Control</h2>
+        <form id="siteForm" class="input-row">
+            <input type="text" id="siteInput" placeholder="e.g. youtube.com">
+            <button type="submit" id="addBtn">Add</button>
+        </form>
+        <ul id="siteList"></ul>
+    </section>
 
-    <h2>Focus Control</h2>
-
-    <div class="input-row">
-        <input type="text" id="siteInput" placeholder="e.g. youtube.com">
-        <button id="addBtn">Add</button>
-    </div>
-
-    <ul id="siteList"></ul>
-
-<script src="popup.js"></script>
+    <script src="popup.js"></script>
 </body>
 </html>
