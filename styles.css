@@ -1,96 +1,258 @@
+/* =========================
+   GLOBAL RESET
+========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    width: 250px;
-    padding: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+    background: #0f0f0f;
+    color: #ffffff;
+    width: 300px;
+    padding: 16px;
 }
 
+/* =========================
+   HEADINGS
+========================= */
 h2 {
-    text-align: center;
+    font-size: 18px;
+    margin: 12px 0 8px;
 }
 
-p {
-    font-size: 16px;
+h3 {
+    font-size: 14px;
+    opacity: 0.7;
+    margin-bottom: 6px;
 }
 
+h4 {
+    font-size: 13px;
+    opacity: 0.6;
+    margin-top: 10px;
+}
+
+/* =========================
+   STATS SECTION
+========================= */
+#stats {
+    margin-bottom: 16px;
+}
+
+#stats p {
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+    opacity: 0.85;
+}
+
+/* =========================
+   SLIDER (DELAY TIMER)
+========================= */
 .slider-container {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 10px;
+    margin-bottom: 16px;
 }
 
 input[type="range"] {
     flex: 1;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: #333;
+    outline: none;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    width: 300px;
-    padding: 15px;
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
 }
 
-h2 {
-    text-align: center;
+#delayValue {
+    font-size: 13px;
+    opacity: 0.8;
 }
 
+/* =========================
+   INPUT + BUTTON ROW
+========================= */
 .input-row {
     display: flex;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
-input {
+input[type="text"] {
     flex: 1;
-    padding: 6px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #1a1a1a;
+    color: white;
+    font-size: 13px;
+    outline: none;
 }
 
+input::placeholder {
+    color: #777;
+}
+
+/* =========================
+   BUTTONS
+========================= */
 button {
-    padding: 6px 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 13px;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-ul {
+/* Primary button */
+#addBtn {
+    background: white;
+    color: black;
+}
+
+/* Hover effects */
+button:hover {
+    transform: scale(1.05);
+}
+
+/* =========================
+   SITE LIST
+========================= */
+#siteList {
     list-style: none;
-    padding: 0;
-    margin-top: 10px;
 }
 
-li {
+#siteList li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px;
+    padding: 8px 10px;
     margin-bottom: 6px;
-    background: #f5f5f5;
-    border-radius: 6px;
+    background: #1a1a1a;
+    border-radius: 10px;
+    font-size: 13px;
 }
 
-li button {
+#siteList button {
     background: transparent;
-    border: none;
-    font-size: 16px;
+    color: #aaa;
+    font-size: 14px;
+}
+
+#siteList button:hover {
     color: #ff4d4d;
-    cursor: pointer;
 }
 
-li button:hover {
-    color: #e60000;
+/* =========================
+   OVERLAY (MAIN FEATURE)
+========================= */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+
+    animation: fadeIn 0.4s ease;
 }
 
-li {
-    transition: transform 0.1s ease;
+/* Center card */
+.overlay-card {
+    text-align: center;
+    color: white;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 300px;
 }
 
-li:hover {
-    transform: scale(1.02);
+/* Site text */
+.overlay-site {
+    font-size: 14px;
+    opacity: 0.6;
+    margin-bottom: 8px;
 }
 
-#siteList {
-    max-height: 120px;
-    overflow-y: auto;
+/* Main message */
+.overlay-title {
+    font-size: 28px;
+    margin-bottom: 10px;
 }
 
-.section {
-    margin-bottom: 15px;
+/* Timer */
+.overlay-timer {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 20px 0;
 }
 
+/* Buttons container */
+.overlay-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Continue button */
+.overlay-continue {
+    background: white;
+    color: black;
+    padding: 12px;
+    border-radius: 12px;
+}
+
+/* Close button */
+.overlay-close {
+    background: transparent;
+    color: white;
+    opacity: 0.7;
+}
+
+/* Hover effects */
+.overlay-continue:hover {
+    transform: scale(1.05);
+}
+
+.overlay-close:hover {
+    opacity: 1;
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Subtle pulse for timer */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+.overlay-timer {
+    animation: pulse 1s infinite;
+}

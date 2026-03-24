@@ -23,16 +23,42 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
     }
 });
 
-if (msg.action === 'visit') {
-    chrome.storage.local.get(['stats'], (res) => {
-        const stats = res.stats || {};
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.action === 'visit') {
+        const today = new Date().toISOString().split('T')[0];
 
-        if (!stats[msg.site]) {
-            stats[msg.site] = { visits: 0 };
-        }
+        chrome.storage.local.get(['stats', today, 'timeSaved'], (res) => {
+            const stats = res.stats || {};
+            const daily = res[today] || {};
+            let timeSaved = res.timeSaved || 0;
 
-        stats[msg.site].visits++;
+            // Normalize site
+            const site = msg.site.replace('www.', '');
 
-        chrome.storage.local.set({ stats });
-    });
-}
+            // ---------- TOTAL ----------
+            if (!stats[site]) {
+                stats[site] = { visits: 0, timesBlockedToday: 0 };
+            }
+
+            stats[site].visits++;
+
+            // ---------- DAILY ----------
+            if (!daily[site]) {
+                daily[site] = 0;
+            }
+
+            daily[site]++;
+
+            // ---------- TIME SAVED ----------
+            if (msg.timeSaved) {
+                timeSaved += msg.timeSaved;
+            }
+
+            chrome.storage.local.set({
+                stats: stats,
+                [today]: daily,
+                timeSaved: timeSaved
+            });
+        });
+    }
+});
