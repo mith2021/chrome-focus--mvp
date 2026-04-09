@@ -1,29 +1,33 @@
-// content.js
+// ------------------- content.js -------------------
 (function () {
 
-    // Prevent multiple overlays per tab
-    if (sessionStorage.getItem('siteBlocked')) return;
+    // Get current site
+    const currentSite = window.location.hostname.replace('www.', '');
 
-    chrome.storage.sync.get(['blockedSites', 'delay'], (result) => {
-        const sites = result.blockedSites || [];
-        const delay = result.delay || 3;
+    // Fetch user settings
+    chrome.storage.sync.get(['blockedSites', 'delay', 'overlayOnRefresh'], (res) => {
+        const blockedSites = res.blockedSites || [];
+        const delay = res.delay || 3;
+        const overlayOnRefresh = res.overlayOnRefresh ?? true;
 
-        const currentSite = window.location.hostname;
-
-        // Better matching (exact domain or subdomain)
-        const isBlocked = sites.some(site =>
+        // Check if site is blocked
+        const isBlocked = blockedSites.some(site =>
             currentSite === site || currentSite.endsWith('.' + site)
         );
 
-        if (!isBlocked) return;
+        if (!isBlocked) return; // Exit if site not blocked
 
-        // Extra safeguard
-        if (document.getElementById('focus-extension-overlay')) return;
+        // Check if it's a page reload
+        const navEntry = performance.getEntriesByType("navigation")[0];
+        const isReload = navEntry && navEntry.type === "reload";
 
-        // Create overlay
+        if (isReload && !overlayOnRefresh) return; // Don't show overlay if disabled on refresh
+
+        // ------------------- Create Overlay -------------------
+        if (document.getElementById('focus-extension-overlay')) return; // Prevent duplicates
+
         const overlay = document.createElement('div');
         overlay.id = 'focus-extension-overlay';
-
         overlay.style = `
             position: fixed;
             top:0; left:0;
@@ -46,6 +50,10 @@
                 Wait ${delay}s
             </button>
         `;
+
+        document.body.appendChild(overlay);
+
+        // ------------------- Close Tab Button -------------------
         overlay.querySelector('#closeTabBtn').onclick = () => {
             chrome.runtime.sendMessage({
                 action: 'closeTab',
@@ -53,9 +61,7 @@
             });
         };
 
-
-        document.body.appendChild(overlay);
-
+        // ------------------- Countdown Timer -------------------
         const button = overlay.querySelector('#continueBtn');
         const text = overlay.querySelector('#countdownText');
         const quotes = [
@@ -67,32 +73,28 @@
         ];
 
         const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-
-
         let timeLeft = delay;
 
         const interval = setInterval(() => {
             timeLeft--;
-
             button.textContent = `Wait ${timeLeft}s`;
-
             if (timeLeft <= 0) {
                 clearInterval(interval);
                 button.disabled = false;
                 button.textContent = "Continue";
-                text.textContent = `${randomQuote}`;
+                text.textContent = randomQuote;
             }
         }, 1000);
 
+        // ------------------- Continue Button -------------------
         button.onclick = () => {
             overlay.remove();
-            sessionStorage.setItem('siteBlocked', 'true');
 
+            // Track visit
             chrome.runtime.sendMessage({
                 site: currentSite,
                 action: 'visit'
             });
         };
     });
-
 })();

@@ -1,26 +1,30 @@
+// Elements
 const statsDiv = document.getElementById('stats');
 const today = new Date().toISOString().split('T')[0];
 
 const delaySlider = document.getElementById('delaySlider');
 const delayValue = document.getElementById('delayValue');
 
-chrome.storage.sync.get(['delay'], (result) => {
-    const delay = result.delay || 3;
-    delaySlider.value = delay;
-    delayValue.textContent = delay + 's';
-});
-
-delaySlider.addEventListener('input', () => {
-    const delay = delaySlider.value;
-    delayValue.textContent = delay + 's';
-
-    chrome.storage.sync.set({ delay: parseInt(delay) });
-});
-
 const input = document.getElementById('siteInput');
 const addBtn = document.getElementById('addBtn');
 const siteList = document.getElementById('siteList');
 
+const settingsBtn = document.getElementById('settingsBtn');
+
+// ------------------- Delay Slider -------------------
+chrome.storage.sync.get(['delay'], (result) => {
+    const delay = result.delay || 3;
+    delaySlider.value = delay;
+    delayValue.textContent = `${delay}s`;
+});
+
+delaySlider.addEventListener('input', () => {
+    const delay = delaySlider.value;
+    delayValue.textContent = `${delay}s`;
+    chrome.storage.sync.set({ delay: parseInt(delay) });
+});
+
+// ------------------- Blocked Sites -------------------
 function loadSites() {
     chrome.storage.sync.get(['blockedSites'], (result) => {
         const sites = result.blockedSites || [];
@@ -37,51 +41,42 @@ function loadSites() {
     });
 }
 
-addBtn.addEventListener('click', () => {
+function addSite(e) {
+    e.preventDefault();
     let newSite = input.value.trim().toLowerCase();
-
     if (!newSite) return;
 
     // Normalize input
-    newSite = newSite
-        .replace(/^https?:\/\//, '')
-        .replace('www.', '')
-        .split('/')[0];
+    newSite = newSite.replace(/^https?:\/\//, '').replace('www.', '').split('/')[0];
 
     chrome.storage.sync.get(['blockedSites'], (result) => {
         const sites = result.blockedSites || [];
-
-        // Prevent duplicates
         if (sites.includes(newSite)) return;
-
         sites.push(newSite);
-
         chrome.storage.sync.set({ blockedSites: sites }, () => {
             input.value = '';
             loadSites();
         });
     });
+}
+
+addBtn.addEventListener('click', addSite);
+input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') addSite(e);
 });
 
 siteList.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
         const index = e.target.dataset.index;
-
         chrome.storage.sync.get(['blockedSites'], (result) => {
             const sites = result.blockedSites || [];
             sites.splice(index, 1);
-
             chrome.storage.sync.set({ blockedSites: sites }, loadSites);
         });
     }
 });
 
-input.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addBtn.click();
-});
-
-loadSites(); // Load sites when the popup is opened
-
+// ------------------- Stats -------------------
 function renderStats() {
     chrome.storage.local.get([today, 'stats', 'timeSaved'], (res) => {
         const dailyData = res[today] || {};
@@ -94,14 +89,14 @@ function renderStats() {
         html += `<h4>Today's Visits:</h4>`;
         if (Object.keys(dailyData).length > 0) {
             for (const site in dailyData) {
-                const visits = dailyData[site].visits || dailyData[site]; // handle different formats
+                const visits = dailyData[site].visits || dailyData[site];
                 html += `<p>${site}: ${visits} visit${visits !== 1 ? 's' : ''}</p>`;
             }
         } else {
             html += `<p>No visits today!</p>`;
         }
 
-        // Total visits & times blocked
+        // Total stats
         html += `<h4>Total Stats:</h4>`;
         if (Object.keys(stats).length > 0) {
             for (const site in stats) {
@@ -118,5 +113,15 @@ function renderStats() {
     });
 }
 
-// Call on popup load
-document.addEventListener('DOMContentLoaded', renderStats);
+// ------------------- Settings Button -------------------
+if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+        chrome.runtime.openOptionsPage();
+    });
+}
+
+// ------------------- Initialize -------------------
+document.addEventListener('DOMContentLoaded', () => {
+    loadSites();
+    renderStats();
+});

@@ -6,19 +6,25 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Stats section with settings button aligned top-right -->
     <section id="statsSection">
-        <h2>Stats</h2>
-        <div id="stats">Loading stats...</div>
+        <div class="top-bar">
+            <h3>Stats</h3>
+            <button id="settingsBtn" class="settings-btn">⚙</button>
+        </div>
+        <div id="stats"></div>
     </section>
 
+    <!-- Delay timer -->
     <section id="timerSection">
-        <label for="delaySlider"><h3>Delay Timer</h3></label>
+        <h3>Delay Timer</h3>
         <div class="slider-container">
             <input type="range" id="delaySlider" min="1" max="10" value="3">
             <span id="delayValue">3s</span>
         </div>
     </section>
 
+    <!-- Focus control / blocked sites -->
     <section id="focusSection">
         <h2>Focus Control</h2>
         <form id="siteForm" class="input-row">
