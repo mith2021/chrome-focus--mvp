@@ -1,64 +1,75 @@
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.action === 'visit') {
-        const today = new Date().toISOString().split('T')[0];
-        chrome.storage.local.get([today], (result) => {
-            const data = result[today] || {};
-            data[msg.site] = (data[msg.site] || 0) + 1;
-            chrome.storage.local.set({[today]: data});
-        });
-    }
-});
+// Realistic estimate of a typical distraction session
+const TIME_SAVED_PER_BLOCK = 15 * 60; // 15 minutes in seconds
 
+function getToday() {
+    return new Date().toISOString().split('T')[0];
+}
+
+// Single listener — no duplicate handlers, no race-prone split logic
 chrome.runtime.onMessage.addListener((msg, sender) => {
-    if (msg.action === 'closeTab') {
-        chrome.tabs.remove(sender.tab.id);
-
-        // Track time saved
-        chrome.storage.local.get(['timeSaved'], (res) => {
-            const total = res.timeSaved || 0;
-            chrome.storage.local.set({
-                timeSaved: total + msg.timeSaved
-            });
-        });
-    }
-});
-
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === 'visit') {
-        const today = new Date().toISOString().split('T')[0];
-
-        chrome.storage.local.get(['stats', today, 'timeSaved'], (res) => {
-            const stats = res.stats || {};
-            const daily = res[today] || {};
-            let timeSaved = res.timeSaved || 0;
-
-            // Normalize site
-            const site = msg.site.replace('www.', '');
-
-            // ---------- TOTAL ----------
-            if (!stats[site]) {
-                stats[site] = { visits: 0, timesBlockedToday: 0 };
-            }
-
-            stats[site].visits++;
-
-            // ---------- DAILY ----------
-            if (!daily[site]) {
-                daily[site] = 0;
-            }
-
-            daily[site]++;
-
-            // ---------- TIME SAVED ----------
-            if (msg.timeSaved) {
-                timeSaved += msg.timeSaved;
-            }
-
-            chrome.storage.local.set({
-                stats: stats,
-                [today]: daily,
-                timeSaved: timeSaved
-            });
-        });
+        recordVisit(msg.site);
+    } else if (msg.action === 'closeTab') {
+        recordBlock(msg.site, sender.tab.id);
     }
 });
+
+// User pressed "Continue" — they chose to visit anyway
+function recordVisit(site) {
+    if (!site) return;
+    const today = getToday();
+
+    chrome.storage.local.get(['stats', 'daily'], (res) => {
+        const stats = res.stats || {};
+        const daily = res.daily || {};
+
+        if (!stats[site]) stats[site] = { visits: 0, timesBlocked: 0, timeSaved: 0 };
+        stats[site].visits++;
+
+        if (!daily[today]) daily[today] = { visits: 0, timesBlocked: 0, timeSaved: 0 };
+        daily[today].visits++;
+
+        chrome.storage.local.set({ stats, daily });
+    });
+}
+
+// User pressed "Close tab" — a true focus decision
+function recordBlock(site, tabId) {
+    if (!site) return;
+    const today = getToday();
+
+    chrome.storage.local.get(['stats', 'daily', 'totalTimeSaved', 'streak'], (res) => {
+        const stats          = res.stats || {};
+        const daily          = res.daily || {};
+        const streak         = res.streak || { current: 0, best: 0, lastDate: null };
+        let   totalTimeSaved = res.totalTimeSaved || 0;
+
+        // Per-site
+        if (!stats[site]) stats[site] = { visits: 0, timesBlocked: 0, timeSaved: 0 };
+        stats[site].timesBlocked++;
+        stats[site].timeSaved += TIME_SAVED_PER_BLOCK;
+
+        // Daily
+        if (!daily[today]) daily[today] = { visits: 0, timesBlocked: 0, timeSaved: 0 };
+        daily[today].timesBlocked++;
+        daily[today].timeSaved += TIME_SAVED_PER_BLOCK;
+
+        // Running total
+        totalTimeSaved += TIME_SAVED_PER_BLOCK;
+
+        // Streak — only count each day once
+        if (streak.lastDate !== today) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+            streak.current = streak.lastDate === yesterdayStr ? streak.current + 1 : 1;
+            streak.best    = Math.max(streak.best, streak.current);
+            streak.lastDate = today;
+        }
+
+        chrome.storage.local.set({ stats, daily, totalTimeSaved, streak }, () => {
+            chrome.tabs.remove(tabId);
+        });
+    });
+}

@@ -2,38 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Focus Extension</title>
+    <title>Focus</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <!-- Stats section with settings button aligned top-right -->
-    <section id="statsSection">
-        <div class="top-bar">
-            <h3>Stats</h3>
-            <button id="settingsBtn" class="settings-btn">⚙</button>
-        </div>
-        <div id="stats"></div>
-    </section>
+<body class="popup">
+    <div class="popup-root">
 
-    <!-- Delay timer -->
-    <section id="timerSection">
-        <h3>Delay Timer</h3>
-        <div class="slider-container">
+        <!-- Header -->
+        <header class="popup-header">
+            <div class="logo">
+                <span class="logo-dot"></span>
+                <span class="logo-text">Focus</span>
+            </div>
+            <button id="settingsBtn" class="icon-btn" title="Settings">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="8" cy="8" r="2"/>
+                    <path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14M3.75 3.75l1.06 1.06M11.19 11.19l1.06 1.06M3.75 12.25l1.06-1.06M11.19 4.81l1.06-1.06"/>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-pill">
+                <span class="stat-value" id="statTimeSaved">—</span>
+                <span class="stat-label">Reclaimed</span>
+            </div>
+            <div class="stats-sep"></div>
+            <div class="stat-pill">
+                <span class="stat-value" id="statVisits">—</span>
+                <span class="stat-label">Decisions</span>
+            </div>
+        </div>
+
+        <!-- Delay duration -->
+        <div class="card">
+            <div class="card-label-row">
+                <span class="card-label">Pause Duration</span>
+                <span class="card-value" id="delayValue">3s</span>
+            </div>
             <input type="range" id="delaySlider" min="1" max="10" value="3">
-            <span id="delayValue">3s</span>
         </div>
-    </section>
 
-    <!-- Focus control / blocked sites -->
-    <section id="focusSection">
-        <h2>Focus Control</h2>
-        <form id="siteForm" class="input-row">
-            <input type="text" id="siteInput" placeholder="e.g. youtube.com">
-            <button type="submit" id="addBtn">Add</button>
-        </form>
-        <ul id="siteList"></ul>
-    </section>
+        <!-- Add site -->
+        <div class="card">
+            <form id="siteForm" class="input-row">
+                <input type="text" id="siteInput" placeholder="Block a site, e.g. youtube.com">
+                <button type="submit" id="addBtn" class="add-btn" title="Add site">
+                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M7 1v12M1 7h12"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
 
+        <!-- Blocked sites list -->
+        <div class="site-list-wrap">
+            <ul id="siteList" class="site-list"></ul>
+        </div>
+
+    </div>
     <script src="popup.js"></script>
 </body>
 </html>

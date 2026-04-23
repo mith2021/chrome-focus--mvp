@@ -1,127 +1,109 @@
-// Elements
-const statsDiv = document.getElementById('stats');
 const today = new Date().toISOString().split('T')[0];
 
-const delaySlider = document.getElementById('delaySlider');
-const delayValue = document.getElementById('delayValue');
+const delaySlider   = document.getElementById('delaySlider');
+const delayValue    = document.getElementById('delayValue');
+const siteInput     = document.getElementById('siteInput');
+const siteList      = document.getElementById('siteList');
+const settingsBtn   = document.getElementById('settingsBtn');
+const statTimeSaved = document.getElementById('statTimeSaved');
+const statVisits    = document.getElementById('statVisits');
 
-const input = document.getElementById('siteInput');
-const addBtn = document.getElementById('addBtn');
-const siteList = document.getElementById('siteList');
+// ── Slider ──────────────────────────────────────
+function updateSlider() {
+    const val = parseInt(delaySlider.value);
+    const pct = ((val - 1) / 9) * 100;
+    delayValue.textContent = `${val}s`;
+    delaySlider.style.background =
+        `linear-gradient(to right, var(--accent) ${pct}%, var(--surface-2) ${pct}%)`;
+}
 
-const settingsBtn = document.getElementById('settingsBtn');
-
-// ------------------- Delay Slider -------------------
-chrome.storage.sync.get(['delay'], (result) => {
-    const delay = result.delay || 3;
-    delaySlider.value = delay;
-    delayValue.textContent = `${delay}s`;
+chrome.storage.sync.get(['delay'], (res) => {
+    delaySlider.value = res.delay || 3;
+    updateSlider();
 });
 
 delaySlider.addEventListener('input', () => {
-    const delay = delaySlider.value;
-    delayValue.textContent = `${delay}s`;
-    chrome.storage.sync.set({ delay: parseInt(delay) });
+    updateSlider();
+    chrome.storage.sync.set({ delay: parseInt(delaySlider.value) });
 });
 
-// ------------------- Blocked Sites -------------------
+// ── Blocked sites ────────────────────────────────
 function loadSites() {
-    chrome.storage.sync.get(['blockedSites'], (result) => {
-        const sites = result.blockedSites || [];
+    chrome.storage.sync.get(['blockedSites'], (res) => {
+        const sites = res.blockedSites || [];
         siteList.innerHTML = '';
 
-        sites.forEach((site, index) => {
+        if (sites.length === 0) {
+            siteList.innerHTML = '<li class="empty-state">No sites blocked yet</li>';
+            return;
+        }
+
+        sites.forEach((site, i) => {
             const li = document.createElement('li');
+            li.className = 'site-item';
             li.innerHTML = `
-                <span>${site}</span>
-                <button data-index="${index}">✕</button>
+                <span class="site-name">${site}</span>
+                <button class="remove-btn" data-index="${i}" title="Remove">
+                    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                        <path d="M1 1l10 10M11 1L1 11"/>
+                    </svg>
+                </button>
             `;
             siteList.appendChild(li);
         });
     });
 }
 
-function addSite(e) {
+document.getElementById('siteForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    let newSite = input.value.trim().toLowerCase();
-    if (!newSite) return;
+    let site = siteInput.value.trim().toLowerCase();
+    if (!site) return;
+    site = site.replace(/^https?:\/\//, '').replace('www.', '').split('/')[0];
 
-    // Normalize input
-    newSite = newSite.replace(/^https?:\/\//, '').replace('www.', '').split('/')[0];
-
-    chrome.storage.sync.get(['blockedSites'], (result) => {
-        const sites = result.blockedSites || [];
-        if (sites.includes(newSite)) return;
-        sites.push(newSite);
+    chrome.storage.sync.get(['blockedSites'], (res) => {
+        const sites = res.blockedSites || [];
+        if (sites.includes(site)) { siteInput.value = ''; return; }
+        sites.push(site);
         chrome.storage.sync.set({ blockedSites: sites }, () => {
-            input.value = '';
+            siteInput.value = '';
             loadSites();
         });
     });
-}
-
-addBtn.addEventListener('click', addSite);
-input.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addSite(e);
 });
 
 siteList.addEventListener('click', (e) => {
-    if (e.target.tagName === 'BUTTON') {
-        const index = e.target.dataset.index;
-        chrome.storage.sync.get(['blockedSites'], (result) => {
-            const sites = result.blockedSites || [];
-            sites.splice(index, 1);
-            chrome.storage.sync.set({ blockedSites: sites }, loadSites);
-        });
-    }
+    const btn = e.target.closest('.remove-btn');
+    if (!btn) return;
+    const index = parseInt(btn.dataset.index);
+    chrome.storage.sync.get(['blockedSites'], (res) => {
+        const sites = res.blockedSites || [];
+        sites.splice(index, 1);
+        chrome.storage.sync.set({ blockedSites: sites }, loadSites);
+    });
 });
 
-// ------------------- Stats -------------------
+// ── Stats ────────────────────────────────────────
+function formatTime(seconds) {
+    if (!seconds) return '0m';
+    if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.round((seconds % 3600) / 60);
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 function renderStats() {
-    chrome.storage.local.get([today, 'stats', 'timeSaved'], (res) => {
-        const dailyData = res[today] || {};
-        const stats = res.stats || {};
-        const timeSaved = res.timeSaved || 0;
-
-        let html = `<p><strong>Time Saved:</strong> ${timeSaved}s</p>`;
-
-        // Daily visits
-        html += `<h4>Today's Visits:</h4>`;
-        if (Object.keys(dailyData).length > 0) {
-            for (const site in dailyData) {
-                const visits = dailyData[site].visits || dailyData[site];
-                html += `<p>${site}: ${visits} visit${visits !== 1 ? 's' : ''}</p>`;
-            }
-        } else {
-            html += `<p>No visits today!</p>`;
-        }
-
-        // Total stats
-        html += `<h4>Total Stats:</h4>`;
-        if (Object.keys(stats).length > 0) {
-            for (const site in stats) {
-                const siteStats = stats[site];
-                html += `<p>
-                    ${site}: ${siteStats.visits || 0} visit${siteStats.visits !== 1 ? 's' : ''}` +
-                    `${siteStats.timesBlockedToday ? ` | Blocked Today: ${siteStats.timesBlockedToday}` : ''}</p>`;
-            }
-        } else {
-            html += `<p>No total stats yet.</p>`;
-        }
-
-        statsDiv.innerHTML = html;
+    chrome.storage.local.get(['daily'], (res) => {
+        const todayData = (res.daily || {})[today] || {};
+        statTimeSaved.textContent = formatTime(todayData.timeSaved || 0);
+        statVisits.textContent    = todayData.timesBlocked || 0;
     });
 }
 
-// ------------------- Settings Button -------------------
-if (settingsBtn) {
-    settingsBtn.addEventListener('click', () => {
-        chrome.runtime.openOptionsPage();
-    });
-}
-
-// ------------------- Initialize -------------------
-document.addEventListener('DOMContentLoaded', () => {
-    loadSites();
-    renderStats();
+// ── Settings ─────────────────────────────────────
+settingsBtn.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
 });
+
+// ── Init ─────────────────────────────────────────
+loadSites();
+renderStats();

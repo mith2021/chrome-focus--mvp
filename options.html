@@ -1,18 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Settings</title>
+    <meta charset="UTF-8">
+    <title>Focus — Settings</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="options">
+    <div class="options-root">
 
-<h1>Settings</h1>
+        <!-- Header -->
+        <header class="options-header">
+            <div class="options-logo">
+                <span class="options-logo-dot"></span>
+                <span class="options-title">Focus</span>
+            </div>
+            <p class="options-subtitle">Settings &amp; Statistics</p>
+        </header>
 
-<label>
-    Overlay on refresh
-    <input type="checkbox" id="refreshToggle">
-</label>
 
-<script src="options.js"></script>
+        <!-- Preferences -->
+        <section class="options-section">
+            <p class="section-label">Preferences</p>
+            <div class="options-card">
+                <div class="options-row">
+                    <div>
+                        <p class="row-label">Overlay on refresh</p>
+                        <p class="row-desc">Show the pause screen when reloading a blocked site</p>
+                    </div>
+                    <label class="toggle-wrap">
+                        <input type="checkbox" id="refreshToggle">
+                        <span class="toggle-track"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary (streak + total) -->
+        <section class="options-section">
+            <p class="section-label">Overview</p>
+            <div class="options-card" id="statsSummary">
+                <p class="no-stats">No data yet — start blocking sites to see stats.</p>
+            </div>
+        </section>
+
+        <!-- Per-site breakdown -->
+        <section class="options-section">
+            <p class="section-label">By Site</p>
+            <div class="options-card" id="statsCard">
+                <p class="no-stats">No blocked sessions yet.</p>
+            </div>
+        </section>
+
+    </div>
+    <script src="options.js"></script>
 </body>
 </html>
